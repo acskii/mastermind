@@ -8,16 +8,28 @@ module Pegs
             blue:'',
             green:'',
             yellow:'',
-            purple:''
+            purple:'',
+            neutral:nil,
         }
 
-        def initialize(color)
+        def initialize(color, index)
             color_code = COLORS.fetch(color)
             if color_code
                 @color = color_code
             else
-                @color = COLORS[:red]
+                @color = COLORS[:neutral]
             end
+
+            @index = index.to_i
+        end
+
+        def edit_color(color)
+            color_code = COLORS.fetch(color)
+            if color_code
+                @color = color_code
+                true
+            end
+            false
         end
     end
 
