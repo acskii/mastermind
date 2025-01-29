@@ -30,6 +30,8 @@ module Pegs
   end
 
   class HintPeg
+    attr_reader :color, :answer_correct, :wrong_pos
+
     COLORS = {
       red: :red,
       white: :white
