@@ -49,8 +49,9 @@ module Players
       t.times do |ip|
         print "PEG ##{ip + 1}: "
         chosen_color = gets.chomp.downcase
+        cc = colors.map { |color, _| color.to_s[0] }
 
-        until colors.select { |color, _| color.to_s[0] == chosen_color } && !chosen_color.empty?
+        until cc.include?(chosen_color) && !chosen_color.empty?
           puts 'INVALID COLOR, TRY AGAIN'.colorize(:red)
           print "PEG ##{ip + 1}: "
           chosen_color = gets.chomp.downcase
