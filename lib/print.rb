@@ -1,5 +1,6 @@
 require 'colorize'
 require 'io/console'
+require_relative 'colors'
 
 module Print
   def self.print_options(msg, options)
@@ -22,6 +23,34 @@ module Print
       input = gets.chomp.to_i
     end
     input
+  end
+
+  def self.get_color_seq
+    colors = Colors.get_play_colors
+    ans = ''
+
+    4.times do |t|
+      print "PEG ##{t + 1}: "
+      chosen_color = gets.chomp.downcase
+
+      until !chosen_color.empty? && colors.include?(chosen_color)
+        puts 'INVALID INPUT, TRY AGAIN'.colorize(:red)
+        print "PEG ##{t + 1}: "
+        chosen_color = gets.chomp.downcase
+      end
+      ans << chosen_color
+    end
+    ans
+  end
+
+  def self.print_colors
+    colors = Colors.get_play_colors
+    puts 'AVAILABLE COLORS'.colorize(:white)
+    colors.each do |color|
+      cc = Colors.get_color(color)
+      print "| #{color} #{cc} ".colorize(cc)
+    end
+    puts ''
   end
 
   def self.print_pegs(*colors)
