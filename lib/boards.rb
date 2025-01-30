@@ -1,27 +1,22 @@
 require_relative 'pegs'
 
-module Boards
-  class Board
-    attr_reader :pegs
+class BoardBase
+  attr_reader :pegs
 
-    def initialize
-      @pegs = []
-
-      4.times do |index|
-        @pegs << Pegs::PlayPeg.new(:neutral, index)
-      end
-    end
-
-    def color_pegs(colors)
-      return false unless colors.length == @pegs.length
-
-      colors.each_with_index do |color, index|
-        @pegs[index].edit_color(color)
-      end
-    end
+  def initialize
+    @pegs = ''
   end
 
-  class GameBoard < Board
+  def change_pegs(seq)
+    return false unless Pegs.valid_seq?(seq)
+
+    @pegs = seq
+    true
+  end
+end
+
+module Boards
+  class GameBoard < BoardBase
     attr_reader :hints
 
     def initialize
@@ -32,43 +27,48 @@ module Boards
     def add_hints(red, white)
       return false unless [red, white].all? { |n| n.instance_of? Integer }
 
-      red.times { |_| @hints << Pegs::HintPeg.new('c') }
-      white.times { |_| @hints << Pegs::HintPeg.new('w') }
+      colors = Colors.get_hint_colors
+      red.times { |_| @hints << colors[0] }
+      white.times { |_| @hints << colors[1] }
       true
     end
   end
 
-  class CodeBoard < Board
-    def initialize(colors)
+  class CodeBoard < BoardBase
+    def initialize(seq)
       super()
-
-      color_pegs(colors)
+      change_pegs(seq)
     end
 
     def same_as?(game_board)
       hints_with(game_board)[0] == 4
     end
 
+    def get_hints(seq)
+      return false unless Pegs.valid_seq?(seq)
+
+      red = get_red_pegs(seq)
+      [red, get_white_pegs(seq, red)]
+    end
+
     def hints_with(game_board)
-      hints = [0, 0]
-      correct = []
+      get_hints(game_board.pegs)
+    end
 
-      @pegs.length.times do |index|
-        if pegs[index].color == game_board.pegs[index].color
-          correct << game_board.pegs[index].color
-          hints[0] += 1
-        end
-      end
+    private
 
-      @pegs.length.times do |index|
-        next unless pegs.map do |peg|
-          peg.color
-        end.include?(game_board.pegs[index].color) && !correct.include?(game_board.pegs[index].color)
+    def get_red_pegs(seq)
+      @pegs.chars.zip(seq.chars).count { |s, g| s == g }
+    end
 
-        hints[1] += 1
-      end
+    def get_white_pegs(seq, red)
+      seq_counts = Hash.new(0)
+      code_counts = Hash.new(0)
 
-      hints
+      @pegs.chars.each { |c| code_counts[c] += 1 }
+      seq.chars.each { |c| seq_counts[c] += 1 }
+
+      code_counts.sum { |color, count| [count, seq_counts[color]].min } - red
     end
   end
 end
