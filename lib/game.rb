@@ -2,6 +2,7 @@ require_relative 'boards'
 require_relative 'players'
 require_relative 'print'
 require_relative 'pegs'
+require_relative 'colors'
 require 'colorize'
 
 class Game
@@ -10,7 +11,7 @@ class Game
   def initialize
     Print.print_title
 
-    @rounds = 6 # Default value of rounds
+    @rounds = 12 # Default value of rounds
     @creator, @breaker = get_players
   end
 
@@ -31,7 +32,7 @@ class Game
   end
 
   def start_game
-    while true
+    loop do
       secret_code = @creator.create_code
       code_board = Boards::CodeBoard.new(secret_code)
       prev_game_boards = []
@@ -41,21 +42,24 @@ class Game
         Print.clear_console
 
         prev_game_boards.each do |board|
-          Print.print_pegs(*board.hints.map { |hint| hint.color })
-          Print.print_pegs(*board.pegs.map { |peg| peg.color })
+          Print.print_pegs(*board.hints.map { |hint| Colors.get_color(hint) })
+          Print.print_pegs(*board.pegs.chars.map { |peg| Colors.get_color(peg) })
           puts '---------------------------------'
         end
 
         puts "ROUND ##{round + 1}"
         current_board = Boards::GameBoard.new
 
-        next unless @breaker.guess_code
-
-        current_board.color_pegs(@breaker.guess)
+        if @breaker.instance_of? Players::ComputerPlayer
+          next unless @breaker.guess_code code_board
+        else
+          next unless @breaker.guess_code
+        end
+        current_board.change_pegs(@breaker.guess)
         current_board.add_hints(*code_board.hints_with(current_board))
 
-        Print.print_pegs(*current_board.hints.map { |hint| hint.color })
-        Print.print_pegs(*current_board.pegs.map { |peg| peg.color })
+        Print.print_pegs(*current_board.hints.map { |hint| Colors.get_color(hint) })
+        Print.print_pegs(*current_board.pegs.chars.map { |peg| Colors.get_color(peg) })
 
         if code_board.same_as? current_board
           game_won = true
