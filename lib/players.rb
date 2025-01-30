@@ -1,82 +1,47 @@
 require_relative 'boards'
+require_relative 'print'
 require_relative 'pegs'
 require 'colorize'
 
-module Players
-  class PlayerBasic
-    attr_accessor :score
-    attr_reader :guess
+class PlayerBasic
+  attr_reader :guess
 
-    def initialize
-      @guess = []
-    end
-
-    def clear_guess
-      @guess.clear
-    end
-
-    private
-
-    def print_colors
-      colors = Pegs::PlayPeg::COLORS
-
-      puts 'AVAILABLE COLORS'.colorize(:white)
-      colors.each_pair do |dis, col|
-        puts "[#{dis.to_s[0]}] #{dis}".colorize(col)
-      end
-    end
+  def initialize
+    @guess = ''
   end
 
+  def clear_guess
+    @guess = ''
+  end
+end
+
+module Players
   class HumanPlayer < PlayerBasic
     def create_code
+      puts ''
       puts 'CREATE THE CODE:'.colorize(:white)
-      print_colors
-      get_color 4
+      Print.print_colors
+      Print.get_color_seq
     end
 
     def guess_code
-      print_colors
-      @guess = get_color(4)
+      Print.print_colors
+      @guess = Print.get_color_seq
       true
-    end
-
-    private
-
-    def get_color(t)
-      colors = Pegs::PlayPeg::COLORS
-      ans = []
-
-      t.times do |ip|
-        print "PEG ##{ip + 1}: "
-        chosen_color = gets.chomp.downcase
-        cc = colors.map { |color, _| color.to_s[0] }
-
-        until cc.include?(chosen_color) && !chosen_color.empty?
-          puts 'INVALID COLOR, TRY AGAIN'.colorize(:red)
-          print "PEG ##{ip + 1}: "
-          chosen_color = gets.chomp.downcase
-        end
-        ans << colors.select { |color, _| color.to_s[0] == chosen_color }.keys[0]
-      end
-      ans
     end
   end
 
   class ComputerPlayer < PlayerBasic
     def create_code
-      get_color 4
+      colors = Colors.get_play_colors
+      ans = ''
+      4.times { |_| ans << colors.sample }
+      ans
     end
 
-    # guess_code here soon
-
-    private
-
-    def get_color(t)
-      colors = Pegs::PlayPeg::COLORS.keys
-      ans = []
-
-      t.times { |_| ans << colors.sample }
-      ans
+    def guess_code(code_board)
+      # I can't figure this out yet
+      @guess = code_board.pegs
     end
   end
 end
